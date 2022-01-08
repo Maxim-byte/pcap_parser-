@@ -17,7 +17,7 @@ packet_rcap_header packet_rcap_header::read_packet_rcap_header(std::istream & st
 void packet_rcap_header::print_packet_rcap_header(std::ostream &stream, const packet_rcap_header &header) {
     time_t t =  header.timestamp_seconds;
     stream << "Arrival time: " << asctime(localtime(&t));
-    stream << "Epoch time: " << header.timestamp_seconds << '.' << header.timestamp_microseconds << '\n';
+    stream << "Epoch time: " << header.timestamp_seconds << ", ms: " << header.timestamp_microseconds << '\n';
     stream << "Captured Packet Length: " << header.captured_packet_length << '\n';
     stream << "Original Packet Length: " << header.original_packet_length << '\n';
 }
