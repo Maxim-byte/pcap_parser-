@@ -11,6 +11,7 @@
  * Parser only for direct order byte, principle is the same
  * Transfer protocol only for udp/tcp to simple it
  * Linktype only for LINKTYPE_ETHERNET 'IEEE 802.3 Ethernet (10Mb, 100Mb, 1000Mb, and up); the 10MB in the DLT_ name is historical'
+ * Ip version only ipv4
  */
 
 parser::parser(std::string_view path) : path_(path) {}
@@ -29,47 +30,74 @@ void parser::open(std::error_code &error) {
 void parser::close() {
     if (file_input_stream_.is_open()) {
         file_input_stream_.close();
+        packet_num = 0;
     }
 }
 
 void parser::fill_next_packet(std::ostream &file_output_stream, std::error_code &error) {
     //if first reading - read global header
-    if(file_input_stream_.eof()) {
-        std::exit(1);
-    }
     if (file_input_stream_.tellg() == 0) {
         auto global_header = global_rcap_header::read_global_rcap_header(file_input_stream_, error);
+        if(file_input_stream_.eof()) {
+            error = std::make_error_code(std::errc::operation_canceled);
+            return;
+        }
         global_rcap_header::print_global_rcap_header(file_output_stream, global_header);
         file_output_stream << '\n';
     }
-    file_output_stream << "----------------------------------------------------" << '\n';
     auto packet_header = packet_rcap_header::read_packet_rcap_header(file_input_stream_, error);
+    if(file_input_stream_.eof()) {
+        error = std::make_error_code(std::errc::no_message_available);
+        return;
+    }
+    file_output_stream << "----------------------------------------------------" << '\n';
+    file_output_stream << "Packet: " << packet_num << '\n';
+    ++packet_num;
     packet_rcap_header::print_packet_rcap_header(file_output_stream, packet_header);
     file_output_stream << '\n';
 
     //ether layer
     auto ether_header = ether_header::read_ether_rcap_header(file_input_stream_, error);
+    if(file_input_stream_.eof()) {
+        error = std::make_error_code(std::errc::operation_canceled);
+        return;
+    }
     ether_header::print_ether_rcap_header(file_output_stream, ether_header);
     file_output_stream << '\n';
 
     //ip header
     auto ip_header = ip_header::read_ip_header(file_input_stream_, error);
+    if(file_input_stream_.eof()) {
+        error = std::make_error_code(std::errc::operation_canceled);
+        return;
+    }
     ip_header::print_ip_header(file_output_stream, ip_header);
     file_output_stream << '\n';
 
     //transport protocol
     if (ip_header.protocol == static_cast<std::uint8_t>(details::transport_protocol::udp)) {
         auto transport_header = udp_header::read_udp_header(file_input_stream_, error);
+        if(file_input_stream_.eof()) {
+            error = std::make_error_code(std::errc::operation_canceled);
+            return;
+        }
         udp_header::print_udp_header(file_output_stream, transport_header);
         file_input_stream_.seekg(
                 packet_header.captured_packet_length - details::udp_header_length_bytes - details::ip_header_length_bytes
                 - details::ether_header_length_bytes, std::ios::cur);
     } else if (ip_header.protocol == static_cast<std::uint8_t>(details::transport_protocol::tcp)) {
         auto transport_header = tcp_header::read_tcp_header(file_input_stream_, error);
+        if(file_input_stream_.eof()) {
+            error = std::make_error_code(std::errc::operation_canceled);
+            return;
+        }
         tcp_header::print_tcp_header(file_output_stream, transport_header);
         file_input_stream_.seekg(
                 packet_header.captured_packet_length - details::tcp_header_length_bytes - details::ip_header_length_bytes
                 - details::ether_header_length_bytes, std::ios::cur);
+    }
+    if(file_input_stream_.eof()) {
+        error = std::make_error_code(std::errc::no_message_available);
     }
     file_output_stream << "----------------------------------------------------" << '\n';
 }

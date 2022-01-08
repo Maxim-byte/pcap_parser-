@@ -11,14 +11,12 @@ packet_rcap_header packet_rcap_header::read_packet_rcap_header(std::istream & st
     if(stream.fail()) {
         ec = std::make_error_code(std::errc::io_error);
     }
-    /*if(stream.eof()) {
-        std doesnt have eof for error code
-    }*/
     return header;
 }
 
 void packet_rcap_header::print_packet_rcap_header(std::ostream &stream, const packet_rcap_header &header) {
-    stream << "Arrival time: " << '.' << header.timestamp_microseconds << '\n'; //todo make a date from seconds since 1970
+    time_t t =  header.timestamp_seconds;
+    stream << "Arrival time: " << asctime(localtime(&t));
     stream << "Epoch time: " << header.timestamp_seconds << '.' << header.timestamp_microseconds << '\n';
     stream << "Captured Packet Length: " << header.captured_packet_length << '\n';
     stream << "Original Packet Length: " << header.original_packet_length << '\n';

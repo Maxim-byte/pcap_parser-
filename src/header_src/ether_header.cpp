@@ -11,9 +11,6 @@ ether_header ether_header::read_ether_rcap_header(std::istream &stream, std::err
     if(stream.fail()) {
         ec = std::make_error_code(std::errc::io_error);
     }
-    /*if(stream.eof()) {
-        std doesnt have eof for error code
-    }*/
     return header;
 }
 

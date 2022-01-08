@@ -19,6 +19,7 @@ class parser
     void fill_next_packet(std::ostream & file_output_stream, std::error_code & error);
 
     private:
+    std::size_t packet_num = 0;
     std::string path_;
     std::ifstream file_input_stream_;
 };

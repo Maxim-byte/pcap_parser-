@@ -15,10 +15,6 @@ global_rcap_header global_rcap_header::read_global_rcap_header(std::istream & st
     if(stream.fail()) {
         ec = std::make_error_code(std::errc::io_error);
     }
-    /*if(stream.eof()) {
-        std doesnt have eof for error code
-    }*/
-
     return header;
 }
 
@@ -32,5 +28,5 @@ void global_rcap_header::print_global_rcap_header(std::ostream &stream, const gl
     stream << "Time zone: UTC" << std::showpos << header.this_zone << '\n';
     stream << "Accuracy of time stamps: " << header.sigfigs << '\n';
     stream << "Snapshot length: " << header.snaplen << '\n';
-    stream << "LinkType: " << header.network << '\n'; //TODO custom people read format
+    stream << "LinkType: " << header.network << '\n';
 }

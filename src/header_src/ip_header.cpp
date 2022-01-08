@@ -18,9 +18,6 @@ ip_header ip_header::read_ip_header(std::istream &stream, std::error_code & ec) 
     if(stream.fail()) {
         ec = std::make_error_code(std::errc::io_error);
     }
-    /*if(stream.eof()) {
-        std doesnt have eof for error code
-    }*/
     return header;
 }
 

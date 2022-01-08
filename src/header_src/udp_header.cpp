@@ -13,9 +13,6 @@ udp_header udp_header::read_udp_header(std::istream &stream, std::error_code & e
     if(stream.fail()) {
         ec = std::make_error_code(std::errc::io_error);
     }
-    /*if(stream.eof()) {
-        std doesnt have eof for error code
-    }*/
     return header;
 }
 
